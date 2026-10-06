@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head></head>
+<body>
+<title>KPL Stats</title>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f6ee;
+    --surface:#ffffff;
+    --surface-2:#eaeee0;
+    --text:#132018;
+    --text-muted:#57685a;
+    --text-faint:#8b998c;
+    --border:#d7ddce;
+    --border-dashed:#c7cfbc;
+    --accent:#1f7a4d;
+    --accent-strong:#0c2f1d;
+    --gold:#b9862a;
+    --gold-soft:#f2e6c5;
+    --ke-red:#b8182b;
+    --ke-green:#0b6e3c;
+    --topbar-bg:#af1626;
+    --win:#1f7a4d;
+    --draw:#8a7433;
+    --loss:#a3453b;
+    --shadow: 0 1px 2px rgba(12,30,20,0.06), 0 8px 24px -12px rgba(12,30,20,0.18);
+    --radius: 16px;
+    --gm:#1f7a4d; --afc:#4192d4; --tus:#8a6d1f; --kp:#d63f2c;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1712; --surface:#16211a; --surface-2:#1c2820;
+      --text:#e9efe6; --text-muted:#9fb2a2; --text-faint:#5f7264; --border:#2a3830; --border-dashed:#33453a;
+      --accent:#4fb27e; --accent-strong:#153a26;
+      --gold:#e0b458; --gold-soft:#3a3018;
+      --ke-red:#e2534a; --ke-green:#49b57a;
+      --topbar-bg:#8c1420;
+      --win:#4fb27e; --draw:#d3b45c; --loss:#e08b7f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+      --gm:#4fb27e; --afc:#6fb0e8; --tus:#d9b25a; --kp:#e2534a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1712; --surface:#16211a; --surface-2:#1c2820;
+    --text:#e9efe6; --text-muted:#9fb2a2; --text-faint:#5f7264; --border:#2a3830; --border-dashed:#33453a;
+    --accent:#4fb27e; --accent-strong:#153a26;
+    --gold:#e0b458; --gold-soft:#3a3018;
+    --ke-red:#e2534a; --ke-green:#49b57a;
+    --topbar-bg:#8c1420;
+    --win:#4fb27e; --draw:#d3b45c; --loss:#e08b7f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    --gm:#4fb27e; --afc:#6fb0e8; --tus:#d9b25a; --kp:#e2534a;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Work Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2{ font-family:"Fraunces",Georgia,serif; font-weight:600; text-wrap:balance; margin:0; }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;}
+  a{color:inherit;text-decoration:none;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .page{max-width:1000px;margin:0 auto;padding:0 20px 64px;}
+
+  .topbar{background:var(--topbar-bg);}
+  .topbar-inner{
+    max-width:1000px;margin:0 auto;padding:0 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    min-height:64px;flex-wrap:wrap;
+  }
+  .topbar-nav{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:12px 0;}
+  .topbar-link{
+    color:#f4f6ee;font-weight:700;font-size:0.98rem;letter-spacing:0.01em;
+    padding:4px 0;border-bottom:2px solid transparent;
+  }
+  .topbar-link:hover{color:var(--gold);border-bottom-color:var(--gold);}
+  .topbar-link.active{color:var(--gold);border-bottom-color:var(--gold);}
+  .topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .topbar-center{display:flex;align-items:center;gap:9px;padding:8px 0;}
+  .topbar-wordmark{color:#f4f6ee;font-family:"Fraunces",Georgia,serif;font-weight:700;font-size:0.88rem;letter-spacing:0.01em;white-space:nowrap;}
+  .season-select-wrap{position:relative;display:inline-flex;align-items:center;flex:none;}
+  .season-select{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    font-family:"IBM Plex Mono",monospace;font-size:0.74rem;font-weight:500;
+    background:rgba(244,246,238,0.12);border:1px solid rgba(244,246,238,0.32);
+    color:#f4f6ee;padding:6px 26px 6px 11px;border-radius:999px;
+    cursor:pointer;white-space:nowrap;
+  }
+  .season-select:hover{border-color:var(--gold);}
+  .season-select-wrap::after{
+    content:"";position:absolute;right:11px;top:50%;transform:translateY(-45%);
+    width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;
+    border-top:5px solid #f4f6ee;pointer-events:none;
+  }
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:30px;height:30px;border-radius:50%;flex:none;
+    background:rgba(244,246,238,0.12);border:1px solid rgba(244,246,238,0.28);
+    color:#f4f6ee;cursor:pointer;transition:border-color 0.12s ease, transform 0.12s ease;
+  }
+  .theme-toggle:hover{border-color:var(--gold);transform:scale(1.06);}
+  .theme-toggle:active{transform:scale(0.94);}
+  .theme-toggle svg{width:15px;height:15px;display:block;}
+  .theme-toggle .icon-sun{display:none;}
+  .theme-toggle[data-mode="dark"] .icon-moon{display:none;}
+  .theme-toggle[data-mode="dark"] .icon-sun{display:block;}
+
+  .flag-strip{display:flex;height:6px;}
+  .flag-strip span{flex:1;}
+  .flag-strip .fs-black{background:#111;}
+  .flag-strip .fs-white{flex:0 0 3px;background:#f4f6ee;}
+  .flag-strip .fs-red{background:var(--ke-red);}
+  .flag-strip .fs-green{background:var(--ke-green);}
+
+  .headline{padding:40px 0 8px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;}
+  .headline h1{font-size:clamp(2.1rem,5.2vw,3rem);line-height:1.05;color:var(--text);}
+  .headline h1 .accent{color:var(--ke-red);}
+  .headline-tag{color:var(--text-muted);font-size:1rem;max-width:64ch;}
+  .back-link{font-size:0.84rem;font-weight:600;color:var(--text-muted);}
+  .back-link:hover{color:var(--accent);}
+
+  section{margin-top:36px;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .section-head h2{font-size:1.3rem;}
+  .section-head p{margin:2px 0 0;color:var(--text-muted);font-size:0.88rem;}
+
+  .table-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .club-search{
+    flex:1 1 220px;min-width:160px;
+    font-family:"Work Sans",sans-serif;font-size:0.88rem;
+    background:var(--surface);border:1px solid var(--border);color:var(--text);
+    padding:9px 16px;border-radius:999px;outline:none;
+    transition:border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+  .club-search::placeholder{color:var(--text-faint);}
+  .club-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);}
+  .table-hint{font-size:0.76rem;color:var(--text-faint);align-self:center;white-space:nowrap;}
+
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);}
+  table{width:100%;border-collapse:collapse;font-size:0.9rem;}
+  thead th{
+    text-align:left;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;
+    color:var(--text-muted);font-weight:700;padding:11px 14px;background:var(--surface-2);
+    border-bottom:1px solid var(--border);white-space:nowrap;
+  }
+  thead th.sortable{cursor:pointer;user-select:none;}
+  thead th.sortable:hover{color:var(--accent);}
+  thead th.sortable .sort-arrow{display:inline-block;margin-left:3px;opacity:0.35;font-size:0.65rem;}
+  thead th.sortable.sort-active .sort-arrow{opacity:1;color:var(--accent);}
+  tbody td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background 0.12s ease;}
+  tbody tr:hover{background:var(--surface-2);}
+  td.num,th.num{text-align:right;font-family:"IBM Plex Mono",monospace;font-weight:600;white-space:nowrap;}
+  td.rank{color:var(--text-faint);font-family:"IBM Plex Mono",monospace;font-size:0.82rem;width:1%;white-space:nowrap;}
+  .club-tag{display:inline-flex;align-items:center;gap:7px;font-weight:600;}
+  .club-tag a{}
+  .club-tag a:hover{text-decoration:underline;}
+  .swatch{width:9px;height:9px;border-radius:50%;flex:none;}
+  .sw-gm{background:var(--gm);} .sw-afc{background:var(--afc);} .sw-tus{background:var(--tus);} .sw-kp{background:var(--kp);} .sw-other{background:var(--text-faint);}
+  .split{color:var(--text-faint);font-size:0.82rem;}
+
+  .goal-bar-wrap{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+  .goal-bar-track{display:block;width:60px;height:7px;border-radius:4px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;flex:none;}
+  .goal-bar-fill{display:block;height:100%;border-radius:4px;background:var(--accent);width:0;transition:width 0.7s cubic-bezier(.22,.9,.35,1);}
+  .no-rows{padding:28px;text-align:center;color:var(--text-faint);}
+
+  .stats-note{margin-top:14px;color:var(--text-muted);font-size:0.82rem;}
+  .stats-note .src{display:block;margin-top:4px;color:var(--text-faint);}
+  .stats-empty{padding:28px 22px;border:1px dashed var(--border-dashed);border-radius:var(--radius);color:var(--text-muted);font-size:0.92rem;}
+
+  .context-box{
+    margin-top:14px;padding:14px 16px;border:1px dashed var(--border-dashed);border-radius:var(--radius);
+    font-size:0.84rem;color:var(--text-muted);
+  }
+  .context-box strong{color:var(--text);}
+
+  .reveal{opacity:0;transform:translateY(10px);transition:opacity 0.45s ease, transform 0.45s ease;}
+  .reveal.is-visible{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1;transform:none;transition:none;}
+    .goal-bar-fill{transition:none;}
+  }
+
+  footer{margin-top:44px;text-align:center;color:var(--text-muted);font-size:0.78rem;}
+  footer a{color:var(--accent);font-weight:600;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <nav class="topbar-nav" aria-label="Site sections">
+      <a class="topbar-link" href="schedule.html">Schedule</a>
+      <a class="topbar-link" href="standings.html">Standings</a>
+      <a class="topbar-link" href="results.html">Results</a>
+      <a class="topbar-link active" href="stats.html">Stats</a>
+    </nav>
+    <div class="topbar-right">
+      <a class="topbar-center" href="index.html" style="text-decoration:none;">
+        <span class="topbar-wordmark">Kenya Premier League</span>
+      </a>
+      <div class="season-select-wrap">
+        <select class="season-select" id="seasonSelect" aria-label="Season">
+          <option value="2025-26">2025/26 season</option>
+          <option value="2024-25">2024/25 season</option>
+        </select>
+      </div>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle color theme" data-mode="light">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="flag-strip"><span class="fs-black"></span><span class="fs-white"></span><span class="fs-red"></span><span class="fs-white"></span><span class="fs-green"></span></div>
+
+<div class="page">
+  <a class="back-link" href="index.html" style="display:inline-block;margin-top:18px;">&larr; All clubs</a>
+
+  <section class="headline" style="margin-top:0;">
+    <h1>Kenya Premier League <span class="accent">Stats</span></h1>
+    <p class="headline-tag">Top scorers league-wide, and clean sheets for the four clubs tracked on this site.</p>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Top scorers</h2>
+      <p id="scorersSub">2025/26 season</p>
+    </div>
+    <div class="table-controls">
+      <input type="search" class="club-search" id="scorerSearch" placeholder="Search player or club&hellip;" aria-label="Search player or club">
+      <span class="table-hint">Click a column heading to sort</span>
+    </div>
+    <div id="scorersBody"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Clean sheets</h2>
+      <p id="cleanSheetsSub">2025/26 season &middot; by club</p>
+    </div>
+    <div id="cleanSheetsBody"></div>
+  </section>
+
+  <footer>Player and club names go through to that club&rsquo;s own season tracker where one exists.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var GOR_MAHIA_URL = "gor-mahia.html";
+  var TUSKER_URL = "tusker.html";
+  var KENYA_POLICE_URL = "kenya-police.html";
+  var AFC_LEOPARDS_URL = "afc-leopards.html";
+
+  var CLUBS = {
+    "Gor Mahia FC": { url: GOR_MAHIA_URL, sw: "sw-gm" },
+    "AFC Leopards SC": { url: AFC_LEOPARDS_URL, sw: "sw-afc" },
+    "Tusker FC": { url: TUSKER_URL, sw: "sw-tus" },
+    "Kenya Police FC": { url: KENYA_POLICE_URL, sw: "sw-kp" }
+  };
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function clubTag(name){
+    var c = CLUBS[name] || { sw: "sw-other" };
+    var inner = c.url ? '<a href="' + c.url + '">' + esc(name) + '</a>' : esc(name);
+    return '<span class="club-tag">' + (c.sw ? '<span class="swatch ' + c.sw + '"></span>' : '') + inner + '</span>';
+  }
+
+  // ---- data, 2025/26 only ----
+  // Full official 2025/26 KPL top scorers list (all 18 clubs), 2+ league goals.
+  var SCORERS_2025_26 = [
+    {"name":"Joe Joseph Irungu Waithira","club":"Muranga SEAL","goals":19},
+    {"name":"Paul Odhiambo Okoth","club":"Ulinzi Stars FC","goals":18},
+    {"name":"Humphrey Tible Aroko Omondi","club":"Kariobangi Sharks","goals":13},
+    {"name":"Yves Junior Koutiama","club":"Kenya Police FC","goals":10},
+    {"name":"Oliver Machaka Auka","club":"Kakamega Homeboyz","goals":10},
+    {"name":"Philip Wasai","club":"APS Bomet FC","goals":10},
+    {"name":"Michael Karamor","club":"Nairobi United","goals":9},
+    {"name":"Ebenezer Kofi Assifuah-Inkoom","club":"Gor Mahia FC","goals":7},
+    {"name":"Erick Kapaito","club":"Tusker FC","goals":7},
+    {"name":"Felix Oluoch Mboya","club":"Gor Mahia FC","goals":7},
+    {"name":"Brian Michira Migiro","club":"Shabana FC","goals":7},
+    {"name":"Kelvin Etemesi Ijili","club":"KCB FC","goals":7},
+    {"name":"Jackson Irungu Macharia","club":"Posta Rangers","goals":7},
+    {"name":"Samuel Ssenyonjo","club":"AFC Leopards SC","goals":7},
+    {"name":"Geoffrey Ojunga Omondi","club":"Bandari FC","goals":6},
+    {"name":"Musa Shariff Sirengo Ramathan","club":"Gor Mahia FC","goals":6},
+    {"name":"Dancan Odhiambo Oluoch Omala","club":"Nairobi United","goals":6},
+    {"name":"Ebenezer Boadi Adukwaw","club":"Gor Mahia FC","goals":6},
+    {"name":"Hansel Ochienge Madegwa","club":"APS Bomet FC","goals":6},
+    {"name":"Amza Mubarak Ngamchiya Ndayou","club":"Bandari FC","goals":5},
+    {"name":"Benson Ochienge Omalla","club":"Nairobi United","goals":5},
+    {"name":"Boniface Muchiri","club":"Ulinzi Stars FC","goals":5},
+    {"name":"Henry Omollo","club":"Kakamega Homeboyz","goals":5},
+    {"name":"Portipher Odhiambo","club":"Kakamega Homeboyz","goals":5},
+    {"name":"Richard Omondi Otieno","club":"KCB FC","goals":5},
+    {"name":"Rowland Makati","club":"KCB FC","goals":5},
+    {"name":"Alex Imbusia","club":"Mara Sugar FC","goals":5},
+    {"name":"Boniface Omondi","club":"KCB FC","goals":5},
+    {"name":"Dennis Brian Okoth","club":"Mathare UTD","goals":5},
+    {"name":"Dennis Cheruiyot","club":"Mara Sugar FC","goals":5},
+    {"name":"Ian Barasa Simiyu","club":"Tusker FC","goals":5},
+    {"name":"John Mark Makwata","club":"Mathare UTD","goals":5},
+    {"name":"Elli Asieche","club":"Mathare UTD","goals":4},
+    {"name":"Enock Machaka Momanyi","club":"Nairobi United","goals":4},
+    {"name":"Erick Ngava Zakayo","club":"Kenya Police FC","goals":4},
+    {"name":"Hillary Juma Otieno","club":"Kakamega Homeboyz","goals":4},
+    {"name":"Jackson Imbiakha","club":"Muranga SEAL","goals":4},
+    {"name":"Kelly Okonji Madada","club":"AFC Leopards SC","goals":4},
+    {"name":"Kevin Wangaya","club":"Nairobi United","goals":4},
+    {"name":"Samuel Kapen","club":"Gor Mahia FC","goals":4},
+    {"name":"Victor Ochami Omune","club":"AFC Leopards SC","goals":4},
+    {"name":"Wycliffe Omondi Otieno Awiko","club":"Shabana FC","goals":4},
+    {"name":"Ibrahim Joshua","club":"Tusker FC","goals":4},
+    {"name":"Michael Macharia","club":"Muranga SEAL","goals":4},
+    {"name":"Abud Khamis Omar","club":"Kenya Police FC","goals":3},
+    {"name":"Alpha Chris Onyango","club":"Gor Mahia FC","goals":3},
+    {"name":"Anthony Naibei","club":"APS Bomet FC","goals":3},
+    {"name":"Batshi Mambote Assis","club":"Shabana FC","goals":3},
+    {"name":"Brian Chonjo Otieno","club":"Posta Rangers","goals":3},
+    {"name":"Daniel Wafula","club":"Mara Sugar FC","goals":3},
+    {"name":"Dennis Ochienge Oalo","club":"Tusker FC","goals":3},
+    {"name":"Drona Openda Langa","club":"Mara Sugar FC","goals":3},
+    {"name":"Edward Masembe","club":"APS Bomet FC","goals":3},
+    {"name":"Enock Morrison","club":"Gor Mahia FC","goals":3},
+    {"name":"Faustine Samaki Ojiambo","club":"Posta Rangers","goals":3},
+    {"name":"Francis Ghartey","club":"Sofapaka FC","goals":3},
+    {"name":"Hassan Beja Kotsao","club":"AFC Leopards SC","goals":3},
+    {"name":"Herman Ngala Mwambegu","club":"Bidco United","goals":3},
+    {"name":"Joseph Kuloba","club":"Sofapaka FC","goals":3},
+    {"name":"Kayci Odhiambo","club":"AFC Leopards SC","goals":3},
+    {"name":"Markvivan Kesa","club":"Kariobangi Sharks","goals":3},
+    {"name":"Marvin Ochienge Amuka","club":"Bidco United","goals":3},
+    {"name":"Michael Ovella Ochieng","club":"Nairobi United","goals":3},
+    {"name":"Paul Osama","club":"Muranga SEAL","goals":3},
+    {"name":"Rodgers Ouma","club":"Kakamega Homeboyz","goals":3},
+    {"name":"Ronald Sichenje Bebeto","club":"AFC Leopards SC","goals":3},
+    {"name":"Samwel Semo Mbaja","club":"AFC Leopards SC","goals":3},
+    {"name":"Timothy Ndayala","club":"Mara Sugar FC","goals":3},
+    {"name":"Tyson Otieno","club":"AFC Leopards SC","goals":3},
+    {"name":"Victor Kunyil Eshitushe","club":"Bidco United","goals":3},
+    {"name":"Brian Ouru","club":"Mathare UTD","goals":3},
+    {"name":"David Omondi","club":"Mara Sugar FC","goals":3},
+    {"name":"Eliud Owen Lokuwam","club":"Posta Rangers","goals":3},
+    {"name":"William Wadri","club":"Bandari FC","goals":3},
+    {"name":"Amatton Samunya","club":"KCB FC","goals":2},
+    {"name":"Austine Musa Odongo","club":"Shabana FC","goals":2},
+    {"name":"Ben Stanley Omondi","club":"Gor Mahia FC","goals":2},
+    {"name":"Boniface Kweyu Munyendo","club":"AFC Leopards SC","goals":2},
+    {"name":"Boniface Nyabuto","club":"Kakamega Homeboyz","goals":2},
+    {"name":"Bernard Bramuel Simiyu","club":"Sofapaka FC","goals":2},
+    {"name":"Bronson Nsubuga Sserumira","club":"Shabana FC","goals":2},
+    {"name":"Charles Sila Ouma","club":"Kenya Police FC","goals":2},
+    {"name":"Christopher Koloti","club":"AFC Leopards SC","goals":2},
+    {"name":"Collins Okello Akite","club":"Bidco United","goals":2},
+    {"name":"Darius Munyambo Msagha","club":"Bandari FC","goals":2},
+    {"name":"David Simiyu","club":"Kenya Police FC","goals":2},
+    {"name":"December Kisaka","club":"KCB FC","goals":2},
+    {"name":"Dennis Magio Oguta","club":"Tusker FC","goals":2},
+    {"name":"Derrick Otieno Omondi","club":"Shabana FC","goals":2},
+    {"name":"Diken Mwema Becks","club":"Posta Rangers","goals":2},
+    {"name":"Edward Omondi Otieno","club":"Kenya Police FC","goals":2},
+    {"name":"Emmanuel Lwangu","club":"AFC Leopards SC","goals":2},
+    {"name":"Faiz Opande Ouma","club":"Kariobangi Sharks","goals":2},
+    {"name":"Festus Kipkemoi","club":"APS Bomet FC","goals":2},
+    {"name":"Francis Isiololo Memusi","club":"Muranga SEAL","goals":2},
+    {"name":"Francis Kahiro","club":"KCB FC","goals":2},
+    {"name":"Frankline Amollo","club":"Kariobangi Sharks","goals":2},
+    {"name":"Isaac Omweri","club":"Mathare UTD","goals":2},
+    {"name":"Jackson Dwanga Mulla","club":"Gor Mahia FC","goals":2},
+    {"name":"Jackson Dwanga Mulla","club":"Posta Rangers","goals":2},
+    {"name":"Jacques Geordy Ndecket Bowamba","club":"Kenya Police FC","goals":2},
+    {"name":"Jimmy Owili","club":"Mara Sugar FC","goals":2},
+    {"name":"Andrew Juma Roma","club":"Bandari FC","goals":2},
+    {"name":"Kevin Omundi Nyabuto","club":"Shabana FC","goals":2},
+    {"name":"Kevin Osanya Otiende","club":"Nairobi United","goals":2},
+    {"name":"Lucas Maina","club":"Muranga SEAL","goals":2},
+    {"name":"Mark Okola Mwalimu","club":"Shabana FC","goals":2},
+    {"name":"Masita Masuta","club":"Ulinzi Stars FC","goals":2},
+    {"name":"Moussa Malik Ntamba","club":"Sofapaka FC","goals":2},
+    {"name":"Moses Mudavadi","club":"Kakamega Homeboyz","goals":2},
+    {"name":"Muhadjiri Hakizimana","club":"Nairobi United","goals":2},
+    {"name":"Mustapha Kizza","club":"Nairobi United","goals":2},
+    {"name":"Paul Ochuoga","club":"Gor Mahia FC","goals":2},
+    {"name":"Philemon Nyakwaka","club":"APS Bomet FC","goals":2},
+    {"name":"Robinson Akongo Musungu","club":"Mara Sugar FC","goals":2},
+    {"name":"Samuel Otieno Odaro","club":"Kakamega Homeboyz","goals":2},
+    {"name":"Shafic Batambuze","club":"Kakamega Homeboyz","goals":2},
+    {"name":"Shariff Amubwombe Majebe","club":"Bandari FC","goals":2},
+    {"name":"Staphod Odhiambo","club":"Ulinzi Stars FC","goals":2},
+    {"name":"Stephen Mbulere Bwire","club":"Kariobangi Sharks","goals":2},
+    {"name":"Telena Tela Ochienge","club":"Ulinzi Stars FC","goals":2},
+    {"name":"Thomas Omole Odhiambo","club":"Tusker FC","goals":2},
+    {"name":"Teddy Trevor Omondi","club":"Posta Rangers","goals":2},
+    {"name":"Victor Haki Akwanyi","club":"Muranga SEAL","goals":2},
+    {"name":"Victor Omondi Otieno","club":"Shabana FC","goals":2},
+    {"name":"Victor Ouma Aguero Otieno","club":"AFC Leopards SC","goals":2},
+    {"name":"Brian Olega","club":"Shabana FC","goals":2},
+    {"name":"Erisat Kiraido Orute","club":"Bandari FC","goals":2},
+    {"name":"Hillary Juma Otieno","club":"APS Bomet FC","goals":2},
+    {"name":"Razel Omondi","club":"Kariobangi Sharks","goals":2}
+  ];
+  var SCORERS_NOTE = "This uses the official 2025/26 Kenya Premier League top scorers list, covering all 18 clubs. Showing the 130 players with 2+ league goals; 99 further players who scored exactly 1 league goal are omitted. A handful of figures for the 4 clubs tracked in depth on this site differ slightly from that club&rsquo;s own season-log page (built independently from news coverage before this official list was available) &mdash; for example Gor Mahia&rsquo;s Felix Oluoch and Ebenezer Assifuah show higher totals here than on the Gor Mahia page, and Yves Koutiama, Erick Kapaito, Ian Simiyu and Eric Zakayo also differ for their clubs. This official list is very likely the more accurate source for full-season totals &mdash; summing it (after excluding own goals, which this list doesn&rsquo;t credit to any player) lines up almost exactly with each tracked club&rsquo;s official goals-for total. The club pages themselves haven&rsquo;t been revised to match yet. (One apparent duplicate in the official data: \"Jackson Dwanga Mulla\" is credited with 2 goals at both Gor Mahia FC and Posta Rangers &mdash; kept as given, most likely two different players sharing a name.)";
+  var SCORERS_SRC = "Source: official 2025/26 FKF Premier League top scorers list (fkfleagues.co.ke), supplied directly.";
+
+  var CLEAN_SHEETS_2025_26 = [
+    {"club":"Kenya Police FC","total":17,"home":8,"away":9,"keeperNote":"Job Ochieng was the club&rsquo;s Goalkeeper of the Season and clear #1; his own final tally isn&rsquo;t separately published (he had 9 clean sheets as of late Feb 2026, roughly two-thirds through the season)."},
+    {"club":"Gor Mahia FC","total":16,"home":8,"away":8,"keeperNote":"Byrne Omondi is the club&rsquo;s main keeper; he had 8 clean sheets as of late Feb 2026 (mid-season), no final individual figure found."},
+    {"club":"AFC Leopards SC","total":15,"home":6,"away":9,"keeperNote":"Humphrey Katasi won the club&rsquo;s Golden Glove award; sources put him at 10–11 clean sheets as of late Feb 2026 (mid-season, sources disagree on the exact number), no final individual figure found."},
+    {"club":"Tusker FC","total":12,"home":7,"away":5,"keeperNote":"Tusker used more than one keeper across the season (Brandon Obiero joined partway through); no single season-long #1 or per-keeper split was found."}
+  ];
+  var CLEAN_SHEETS_NOTE = "Team totals for the full 34-match league season, ranked by clean sheets. Independently cross-checked against each club&rsquo;s own match log (counting matches with 0 goals conceded) &mdash; all four reconcile exactly. No club publishes a final, season-long clean-sheet count broken down by individual goalkeeper, so player-level totals below are the most recent snapshots found rather than season finals.";
+  var CLEAN_SHEETS_SRC = "Source: each club&rsquo;s official team page on fkfleagues.co.ke (season-final team totals), cross-checked against each club&rsquo;s own match log on this site. Goalkeeper notes from The Star, K24 Digital, Daily Nation, and each club&rsquo;s season-ending awards coverage (Feb–Jun 2026); dated snapshots as marked, not final tallies.";
+  var CLEAN_SHEETS_CONTEXT = "For context: the league-wide 2025/26 Golden Glove (16 clean sheets) went to Stephen Ochieng of Shabana FC &mdash; a club not tracked on this site, so it doesn&rsquo;t show up in the table above. (The Golden Boot winner, Joe Waithira of Murang&rsquo;a Seal FC, is included in the Top scorers table.)";
+
+  var scorerSortField = 'goals';
+  var scorerSortDir = -1;
+
+  function sortedScorers(){
+    var arr = SCORERS_2025_26.slice();
+    var field = scorerSortField, dir = scorerSortDir;
+    arr.sort(function(a, b){
+      if (field === 'goals') return (a.goals - b.goals) * dir;
+      var av = (field === 'name' ? a.name : a.club).toLowerCase();
+      var bv = (field === 'name' ? b.name : b.club).toLowerCase();
+      return av.localeCompare(bv) * dir;
+    });
+    return arr;
+  }
+
+  function scorersHTML(){
+    var maxGoals = SCORERS_2025_26.reduce(function(m, s){ return Math.max(m, s.goals); }, 1);
+    var rows = sortedScorers().map(function(s, i){
+      var nameCell = esc(s.name) + (s.note ? ' <span class="split">(' + esc(s.note) + ')</span>' : '');
+      var pct = Math.round((s.goals / maxGoals) * 100);
+      return '<tr data-name="' + esc(s.name.toLowerCase()) + '" data-club="' + esc(s.club.toLowerCase()) + '">' +
+        '<td class="rank">' + (i+1) + '</td><td>' + nameCell + '</td><td>' + clubTag(s.club) + '</td>' +
+        '<td class="num"><div class="goal-bar-wrap"><span>' + (s.goalsLabel || s.goals) + '</span><span class="goal-bar-track"><span class="goal-bar-fill" data-pct="' + pct + '"></span></span></div></td>' +
+      '</tr>';
+    }).join('');
+
+    function th(field, label, numeric){
+      var active = field === scorerSortField;
+      var arrow = active ? (scorerSortDir === 1 ? '&uarr;' : '&darr;') : '&udarr;';
+      return '<th class="sortable' + (numeric ? ' num' : '') + (active ? ' sort-active' : '') + '" data-field="' + field + '">' + label + '<span class="sort-arrow">' + arrow + '</span></th>';
+    }
+
+    return '<div class="table-wrap reveal"><table>' +
+      '<thead><tr><th></th>' + th('name','Player',false) + th('club','Club',false) + th('goals','Goals',true) + '</tr></thead>' +
+      '<tbody id="scorerRows">' + rows + '</tbody></table></div>' +
+      '<p class="stats-note">' + SCORERS_NOTE + '<span class="src">' + SCORERS_SRC + '</span></p>';
+  }
+
+  function cleanSheetsHTML(){
+    var maxCS = CLEAN_SHEETS_2025_26.reduce(function(m, c){ return Math.max(m, c.total); }, 1);
+    var rows = CLEAN_SHEETS_2025_26.map(function(c, i){
+      var pct = Math.round((c.total / maxCS) * 100);
+      return '<tr><td class="rank">' + (i+1) + '</td><td>' + clubTag(c.club) + '</td>' +
+        '<td class="num"><div class="goal-bar-wrap"><span>' + c.total + '</span><span class="goal-bar-track"><span class="goal-bar-fill" data-pct="' + pct + '"></span></span></div></td>' +
+        '<td class="split">' + c.home + ' home / ' + c.away + ' away</td></tr>';
+    }).join('');
+    var keeperNotes = CLEAN_SHEETS_2025_26.map(function(c){
+      return '<div>' + clubTag(c.club) + ' &mdash; ' + c.keeperNote + '</div>';
+    }).join('');
+    return '<div class="table-wrap reveal"><table>' +
+      '<thead><tr><th></th><th>Club</th><th class="num">Clean sheets</th><th>Split</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>' +
+      '<p class="stats-note">' + CLEAN_SHEETS_NOTE + '<span class="src">' + CLEAN_SHEETS_SRC + '</span></p>' +
+      '<div class="context-box reveal" style="display:flex;flex-direction:column;gap:8px;">' + keeperNotes + '</div>' +
+      '<p class="stats-note" style="margin-top:10px;">' + CLEAN_SHEETS_CONTEXT + '</p>';
+  }
+
+  var EMPTY = '<div class="stats-empty">Stats haven&rsquo;t been compiled for this season yet &mdash; check back once more club pages are tracked.</div>';
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var revealObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-visible');
+      revealObserver.unobserve(entry.target);
+    });
+  }, {threshold: 0.1}) : null;
+
+  function animateBars(){
+    var bars = document.querySelectorAll('.goal-bar-fill');
+    requestAnimationFrame(function(){
+      bars.forEach(function(b){ b.style.width = b.getAttribute('data-pct') + '%'; });
+    });
+  }
+
+  function wireReveal(){
+    var els = document.querySelectorAll('.reveal:not([data-wired])');
+    els.forEach(function(el){
+      el.setAttribute('data-wired', '1');
+      if (reduceMotion || !revealObserver) { el.classList.add('is-visible'); return; }
+      revealObserver.observe(el);
+    });
+  }
+
+  function applyScorerSearch(){
+    var q = (document.getElementById('scorerSearch').value || '').trim().toLowerCase();
+    var rows = document.querySelectorAll('#scorerRows tr');
+    var any = false;
+    rows.forEach(function(tr){
+      var match = !q || tr.getAttribute('data-name').indexOf(q) !== -1 || tr.getAttribute('data-club').indexOf(q) !== -1;
+      tr.style.display = match ? '' : 'none';
+      if (match) any = true;
+    });
+    var wrap = document.getElementById('scorersBody').querySelector('.table-wrap');
+    var noRows = wrap ? wrap.querySelector('.no-rows') : null;
+    if (wrap && !any && !noRows && rows.length) {
+      noRows = document.createElement('div');
+      noRows.className = 'no-rows';
+      noRows.textContent = 'No players match "' + document.getElementById('scorerSearch').value + '".';
+      wrap.appendChild(noRows);
+    } else if (wrap && any && noRows) {
+      noRows.remove();
+    }
+  }
+
+  function wireScorerSort(){
+    var ths = document.querySelectorAll('#scorersBody thead th.sortable');
+    ths.forEach(function(th){
+      th.addEventListener('click', function(){
+        var field = th.getAttribute('data-field');
+        if (field === scorerSortField) { scorerSortDir = -scorerSortDir; }
+        else { scorerSortField = field; scorerSortDir = (field === 'goals') ? -1 : 1; }
+        document.getElementById('scorersBody').innerHTML = scorersHTML();
+        wireScorerSort();
+        applyScorerSearch();
+        wireReveal();
+        animateBars();
+      });
+    });
+  }
+
+  function renderSeason(key){
+    if(key === '2025-26'){
+      document.getElementById('scorersBody').innerHTML = scorersHTML();
+      document.getElementById('cleanSheetsBody').innerHTML = cleanSheetsHTML();
+      document.getElementById('scorersSub').textContent = '2025/26 season';
+      document.getElementById('cleanSheetsSub').textContent = '2025/26 season · by club';
+      wireScorerSort();
+      applyScorerSearch();
+    } else {
+      document.getElementById('scorersBody').innerHTML = EMPTY;
+      document.getElementById('cleanSheetsBody').innerHTML = EMPTY;
+      var label = key.replace('-', '/');
+      document.getElementById('scorersSub').textContent = label + ' season';
+      document.getElementById('cleanSheetsSub').textContent = label + ' season';
+    }
+    wireReveal();
+    animateBars();
+  }
+
+  document.getElementById('seasonSelect').addEventListener('change', function(e){
+    renderSeason(e.target.value);
+  });
+  document.getElementById('scorerSearch').addEventListener('input', applyScorerSearch);
+
+  // ---- Theme toggle (persisted per-viewer via localStorage; this artifact's own origin) ----
+  var themeToggle = document.getElementById('themeToggle');
+  var THEME_KEY = 'kpl-theme';
+  function systemPrefersDark(){
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+  function resolvedMode(){
+    var attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'dark' || attr === 'light') return attr;
+    return systemPrefersDark() ? 'dark' : 'light';
+  }
+  function applyTheme(stored){
+    if (stored === 'light' || stored === 'dark') {
+      document.documentElement.setAttribute('data-theme', stored);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    if (themeToggle) themeToggle.setAttribute('data-mode', resolvedMode());
+  }
+  var storedTheme = null;
+  try { storedTheme = localStorage.getItem(THEME_KEY); } catch(e){}
+  applyTheme(storedTheme || 'dark');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function(){
+      var next = resolvedMode() === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem(THEME_KEY, next); } catch(e){}
+      applyTheme(next);
+    });
+  }
+
+  renderSeason('2025-26');
+})();
+</script>
+
+</body>
+</html>

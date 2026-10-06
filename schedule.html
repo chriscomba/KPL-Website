@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head></head>
+<body>
+<title>KPL Schedule</title>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f6ee;
+    --surface:#ffffff;
+    --surface-2:#eaeee0;
+    --text:#132018;
+    --text-muted:#57685a;
+    --text-faint:#8b998c;
+    --border:#d7ddce;
+    --border-dashed:#c7cfbc;
+    --accent:#1f7a4d;
+    --accent-strong:#0c2f1d;
+    --gold:#b9862a;
+    --gold-soft:#f2e6c5;
+    --ke-red:#b8182b;
+    --ke-green:#0b6e3c;
+    --topbar-bg:#af1626;
+    --win:#1f7a4d;
+    --draw:#8a7433;
+    --loss:#a3453b;
+    --shadow: 0 1px 2px rgba(12,30,20,0.06), 0 8px 24px -12px rgba(12,30,20,0.18);
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1712; --surface:#16211a; --surface-2:#1c2820;
+      --text:#e9efe6; --text-muted:#9fb2a2; --text-faint:#5f7264; --border:#2a3830; --border-dashed:#33453a;
+      --accent:#4fb27e; --accent-strong:#153a26;
+      --gold:#e0b458; --gold-soft:#3a3018;
+      --ke-red:#e2534a; --ke-green:#49b57a;
+      --topbar-bg:#8c1420;
+      --win:#4fb27e; --draw:#d3b45c; --loss:#e08b7f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1712; --surface:#16211a; --surface-2:#1c2820;
+    --text:#e9efe6; --text-muted:#9fb2a2; --text-faint:#5f7264; --border:#2a3830; --border-dashed:#33453a;
+    --accent:#4fb27e; --accent-strong:#153a26;
+    --gold:#e0b458; --gold-soft:#3a3018;
+    --ke-red:#e2534a; --ke-green:#49b57a;
+    --topbar-bg:#8c1420;
+    --win:#4fb27e; --draw:#d3b45c; --loss:#e08b7f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Work Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2{ font-family:"Fraunces",Georgia,serif; font-weight:600; text-wrap:balance; margin:0; }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;}
+  a{color:inherit;text-decoration:none;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .page{max-width:1000px;margin:0 auto;padding:0 20px 64px;}
+
+  .topbar{background:var(--topbar-bg);}
+  .topbar-inner{
+    max-width:1000px;margin:0 auto;padding:0 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    min-height:64px;flex-wrap:wrap;
+  }
+  .topbar-nav{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:12px 0;}
+  .topbar-link{
+    color:#f4f6ee;font-weight:700;font-size:0.98rem;letter-spacing:0.01em;
+    padding:4px 0;border-bottom:2px solid transparent;
+  }
+  .topbar-link:hover{color:var(--gold);border-bottom-color:var(--gold);}
+  .topbar-link.active{color:var(--gold);border-bottom-color:var(--gold);}
+  .topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar-center{display:flex;align-items:center;gap:9px;padding:8px 0;}
+  .topbar-wordmark{color:#f4f6ee;font-family:"Fraunces",Georgia,serif;font-weight:700;font-size:0.88rem;letter-spacing:0.01em;white-space:nowrap;}
+  .season-select-wrap{position:relative;display:inline-flex;align-items:center;flex:none;}
+  .season-select{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    font-family:"IBM Plex Mono",monospace;font-size:0.74rem;font-weight:500;
+    background:rgba(244,246,238,0.12);border:1px solid rgba(244,246,238,0.32);
+    color:#f4f6ee;padding:6px 26px 6px 11px;border-radius:999px;
+    cursor:pointer;white-space:nowrap;
+  }
+  .season-select:hover{border-color:var(--gold);}
+  .season-select-wrap::after{
+    content:"";position:absolute;right:11px;top:50%;transform:translateY(-45%);
+    width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;
+    border-top:5px solid #f4f6ee;pointer-events:none;
+  }
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:30px;height:30px;border-radius:50%;flex:none;
+    background:rgba(244,246,238,0.12);border:1px solid rgba(244,246,238,0.28);
+    color:#f4f6ee;cursor:pointer;transition:border-color 0.12s ease, transform 0.12s ease;
+  }
+  .theme-toggle:hover{border-color:var(--gold);transform:scale(1.06);}
+  .theme-toggle:active{transform:scale(0.94);}
+  .theme-toggle svg{width:15px;height:15px;display:block;}
+  .theme-toggle .icon-sun{display:none;}
+  .theme-toggle[data-mode="dark"] .icon-moon{display:none;}
+  .theme-toggle[data-mode="dark"] .icon-sun{display:block;}
+
+  .flag-strip{display:flex;height:6px;}
+  .flag-strip span{flex:1;}
+  .flag-strip .fs-black{background:#111;}
+  .flag-strip .fs-white{flex:0 0 3px;background:#f4f6ee;}
+  .flag-strip .fs-red{background:var(--ke-red);}
+  .flag-strip .fs-green{background:var(--ke-green);}
+
+  .headline{padding:40px 0 8px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;}
+  .headline h1{font-size:clamp(2.1rem,5.2vw,3rem);line-height:1.05;color:var(--text);}
+  .headline h1 .accent{color:var(--ke-red);}
+  .headline-tag{color:var(--text-muted);font-size:1rem;max-width:60ch;}
+  .back-link{font-size:0.84rem;font-weight:600;color:var(--text-muted);}
+  .back-link:hover{color:var(--accent);}
+
+  section{margin-top:32px;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+  .section-head h2{font-size:1.3rem;}
+  .section-head p{margin:2px 0 0;color:var(--text-muted);font-size:0.88rem;}
+
+  .schedule-empty{
+    padding:48px 28px;border:1px dashed var(--border-dashed);border-radius:var(--radius);
+    background:var(--surface);text-align:center;transition:border-color 0.2s ease;
+  }
+  .schedule-empty:hover{border-color:var(--accent);}
+  .schedule-empty .icon-wrap{
+    width:56px;height:56px;margin:0 auto 16px;border-radius:50%;
+    background:var(--surface-2);display:flex;align-items:center;justify-content:center;
+    animation:iconBreathe 3.6s ease-in-out infinite;
+  }
+  .schedule-empty .icon{
+    width:26px;height:26px;color:var(--text-faint);
+  }
+  @keyframes iconBreathe{
+    0%, 100% { transform:scale(1); box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 16%, transparent); }
+    50% { transform:scale(1.06); box-shadow:0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent); }
+  }
+  .schedule-empty h3{
+    font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:1.15rem;color:var(--text);margin:0 0 6px;
+  }
+  .schedule-empty p{margin:0;color:var(--text-muted);font-size:0.9rem;max-width:44ch;margin:0 auto;}
+
+  .schedule-note{margin-top:14px;color:var(--text-muted);font-size:0.82rem;text-align:center;}
+
+  .reveal{opacity:0;transform:translateY(10px);transition:opacity 0.5s ease, transform 0.5s ease;}
+  .reveal.is-visible{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1;transform:none;transition:none;}
+    .schedule-empty .icon-wrap{animation:none;}
+  }
+
+  footer{margin-top:44px;text-align:center;color:var(--text-muted);font-size:0.78rem;}
+  footer a{color:var(--accent);font-weight:600;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <nav class="topbar-nav" aria-label="Site sections">
+      <a class="topbar-link active" href="schedule.html">Schedule</a>
+      <a class="topbar-link" href="standings.html">Standings</a>
+      <a class="topbar-link" href="results.html">Results</a>
+      <a class="topbar-link" href="stats.html">Stats</a>
+    </nav>
+    <div class="topbar-right">
+      <a class="topbar-center" href="index.html" style="text-decoration:none;">
+        <span class="topbar-wordmark">Kenya Premier League</span>
+      </a>
+      <div class="season-select-wrap">
+        <select class="season-select" id="seasonSelect" aria-label="Season">
+          <option value="2025-26">2025/26 season</option>
+          <option value="2024-25">2024/25 season</option>
+        </select>
+      </div>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle color theme" data-mode="light">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="flag-strip"><span class="fs-black"></span><span class="fs-white"></span><span class="fs-red"></span><span class="fs-white"></span><span class="fs-green"></span></div>
+
+<div class="page">
+  <a class="back-link" href="index.html" style="display:inline-block;margin-top:18px;">&larr; All clubs</a>
+
+  <section class="headline" style="margin-top:0;">
+    <h1>Kenya Premier League <span class="accent">Schedule</span></h1>
+    <p class="headline-tag">Upcoming fixtures for the four clubs tracked on this site.</p>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Upcoming fixtures</h2>
+      <p id="scheduleSub">2025/26 season</p>
+    </div>
+    <div id="scheduleBody"></div>
+  </section>
+
+  <footer>Past results are on the <a href="results.html">Results</a> page.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SCHEDULE = {
+    "2025-26": {
+      label: "2025/26",
+      note: "The 2025/26 season has concluded &mdash; every match already played is on the Results page.",
+      fixtures: []
+    },
+    "2024-25": {
+      label: "2024/25",
+      note: "The 2024/25 season has concluded.",
+      fixtures: []
+    }
+  };
+
+  function emptyStateHTML(){
+    return '<div class="schedule-empty reveal">' +
+      '<div class="icon-wrap"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<rect x="3" y="4.5" width="18" height="16" rx="2.5"></rect>' +
+        '<line x1="3" y1="9.5" x2="21" y2="9.5"></line>' +
+        '<line x1="7.5" y1="2.5" x2="7.5" y2="6.5"></line>' +
+        '<line x1="16.5" y1="2.5" x2="16.5" y2="6.5"></line>' +
+      '</svg></div>' +
+      '<h3>No upcoming fixtures</h3>' +
+      '<p>There are no scheduled matches right now for the clubs tracked on this site. Check back once the next set of fixtures is announced.</p>' +
+    '</div>';
+  }
+
+  function bodyHTML(key){
+    var data = SCHEDULE[key];
+    var note = data ? data.note : '';
+    return emptyStateHTML() + (note ? '<p class="schedule-note reveal">' + note + '</p>' : '');
+  }
+
+  // ---- Scroll-reveal (shared pattern across the site) ----
+  var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var revealObserver = (window.IntersectionObserver && !reduceMotion) ? new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 }) : null;
+
+  function wireReveal(){
+    var els = document.querySelectorAll('.reveal');
+    els.forEach(function(el, i){
+      if (reduceMotion || !revealObserver) {
+        el.classList.add('is-visible');
+      } else {
+        el.style.transitionDelay = (Math.min(i, 6) * 60) + 'ms';
+        revealObserver.observe(el);
+      }
+    });
+  }
+
+  function renderSeason(key){
+    document.getElementById('scheduleBody').innerHTML = bodyHTML(key);
+    document.getElementById('scheduleSub').textContent = (SCHEDULE[key] ? SCHEDULE[key].label : key.replace('-', '/')) + ' season';
+    wireReveal();
+  }
+
+  document.getElementById('seasonSelect').addEventListener('change', function(e){
+    renderSeason(e.target.value);
+  });
+
+  // ---- Theme toggle (persisted per-viewer via localStorage; this artifact's own origin) ----
+  var themeToggle = document.getElementById('themeToggle');
+  var THEME_KEY = 'kpl-theme';
+  function systemPrefersDark(){
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+  function resolvedMode(){
+    var attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'dark' || attr === 'light') return attr;
+    return systemPrefersDark() ? 'dark' : 'light';
+  }
+  function applyTheme(stored){
+    if (stored === 'light' || stored === 'dark') {
+      document.documentElement.setAttribute('data-theme', stored);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    if (themeToggle) themeToggle.setAttribute('data-mode', resolvedMode());
+  }
+  var storedTheme = null;
+  try { storedTheme = localStorage.getItem(THEME_KEY); } catch(e){}
+  applyTheme(storedTheme || 'dark');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function(){
+      var next = resolvedMode() === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem(THEME_KEY, next); } catch(e){}
+      applyTheme(next);
+    });
+  }
+
+  renderSeason('2025-26');
+})();
+</script>
+
+</body>
+</html>

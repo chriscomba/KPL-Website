@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head></head>
+<body>
+<title>KPL Standings</title>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f6ee;
+    --surface:#ffffff;
+    --surface-2:#eaeee0;
+    --text:#132018;
+    --text-muted:#57685a;
+    --text-faint:#8b998c;
+    --border:#d7ddce;
+    --border-dashed:#c7cfbc;
+    --accent:#1f7a4d;
+    --accent-strong:#0c2f1d;
+    --gold:#b9862a;
+    --gold-soft:#f2e6c5;
+    --ke-red:#b8182b;
+    --ke-green:#0b6e3c;
+    --topbar-bg:#af1626;
+    --shadow: 0 1px 2px rgba(12,30,20,0.06), 0 8px 24px -12px rgba(12,30,20,0.18);
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1712; --surface:#16211a; --surface-2:#1c2820;
+      --text:#e9efe6; --text-muted:#9fb2a2; --text-faint:#5f7264; --border:#2a3830; --border-dashed:#33453a;
+      --accent:#4fb27e; --accent-strong:#153a26;
+      --gold:#e0b458; --gold-soft:#3a3018;
+      --ke-red:#e2534a; --ke-green:#49b57a;
+      --topbar-bg:#8c1420;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1712; --surface:#16211a; --surface-2:#1c2820;
+    --text:#e9efe6; --text-muted:#9fb2a2; --text-faint:#5f7264; --border:#2a3830; --border-dashed:#33453a;
+    --accent:#4fb27e; --accent-strong:#153a26;
+    --gold:#e0b458; --gold-soft:#3a3018;
+    --ke-red:#e2534a; --ke-green:#49b57a;
+    --topbar-bg:#8c1420;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Work Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2{ font-family:"Fraunces",Georgia,serif; font-weight:600; text-wrap:balance; margin:0; }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;}
+  a{color:inherit;text-decoration:none;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .page{max-width:1000px;margin:0 auto;padding:0 20px 64px;}
+
+  .topbar{background:var(--topbar-bg);}
+  .topbar-inner{
+    max-width:1000px;margin:0 auto;padding:0 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    min-height:64px;flex-wrap:wrap;
+  }
+  .topbar-nav{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:12px 0;}
+  .topbar-link{
+    color:#f4f6ee;font-weight:700;font-size:0.98rem;letter-spacing:0.01em;
+    padding:4px 0;border-bottom:2px solid transparent;
+  }
+  .topbar-link:hover{color:var(--gold);border-bottom-color:var(--gold);}
+  .topbar-link.active{color:var(--gold);border-bottom-color:var(--gold);}
+  .topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .topbar-center{display:flex;align-items:center;gap:9px;padding:8px 0;}
+  .topbar-wordmark{color:#f4f6ee;font-family:"Fraunces",Georgia,serif;font-weight:700;font-size:0.88rem;letter-spacing:0.01em;white-space:nowrap;}
+  .season-select-wrap{position:relative;display:inline-flex;align-items:center;flex:none;}
+  .season-select{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    font-family:"IBM Plex Mono",monospace;font-size:0.74rem;font-weight:500;
+    background:rgba(244,246,238,0.12);border:1px solid rgba(244,246,238,0.32);
+    color:#f4f6ee;padding:6px 26px 6px 11px;border-radius:999px;
+    cursor:pointer;white-space:nowrap;
+  }
+  .season-select:hover{border-color:var(--gold);}
+  .season-select-wrap::after{
+    content:"";position:absolute;right:11px;top:50%;transform:translateY(-45%);
+    width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;
+    border-top:5px solid #f4f6ee;pointer-events:none;
+  }
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:30px;height:30px;border-radius:50%;flex:none;
+    background:rgba(244,246,238,0.12);border:1px solid rgba(244,246,238,0.28);
+    color:#f4f6ee;cursor:pointer;transition:border-color 0.12s ease, transform 0.12s ease;
+  }
+  .theme-toggle:hover{border-color:var(--gold);transform:scale(1.06);}
+  .theme-toggle:active{transform:scale(0.94);}
+  .theme-toggle svg{width:15px;height:15px;display:block;}
+  .theme-toggle .icon-sun{display:none;}
+  .theme-toggle[data-mode="dark"] .icon-moon{display:none;}
+  .theme-toggle[data-mode="dark"] .icon-sun{display:block;}
+
+  .flag-strip{display:flex;height:6px;}
+  .flag-strip span{flex:1;}
+  .flag-strip .fs-black{background:#111;}
+  .flag-strip .fs-white{flex:0 0 3px;background:#f4f6ee;}
+  .flag-strip .fs-red{background:var(--ke-red);}
+  .flag-strip .fs-green{background:var(--ke-green);}
+
+  .headline{padding:40px 0 8px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;}
+  .headline h1{font-size:clamp(2.1rem,5.2vw,3rem);line-height:1.05;color:var(--text);}
+  .headline h1 .accent{color:var(--ke-red);}
+  .headline-tag{color:var(--text-muted);font-size:1rem;max-width:58ch;}
+  .back-link{font-size:0.84rem;font-weight:600;color:var(--text-muted);}
+  .back-link:hover{color:var(--accent);}
+
+  section{margin-top:32px;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+  .section-head h2{font-size:1.3rem;}
+  .section-head p{margin:2px 0 0;color:var(--text-muted);font-size:0.88rem;}
+
+  .table-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .club-search{
+    flex:1 1 220px;min-width:160px;
+    font-family:"Work Sans",sans-serif;font-size:0.88rem;
+    background:var(--surface);border:1px solid var(--border);color:var(--text);
+    padding:9px 16px;border-radius:999px;outline:none;
+    transition:border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+  .club-search::placeholder{color:var(--text-faint);}
+  .club-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);}
+  .table-hint{font-size:0.76rem;color:var(--text-faint);align-self:center;white-space:nowrap;}
+
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);}
+  table{border-collapse:collapse;width:100%;min-width:680px;}
+  thead th{text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface-2);}
+  thead th.num,tbody td.mono{text-align:right;}
+  thead th.sortable{cursor:pointer;user-select:none;position:relative;}
+  thead th.sortable:hover{color:var(--accent);}
+  thead th.sortable .sort-arrow{display:inline-block;margin-left:3px;opacity:0.35;font-size:0.65rem;}
+  thead th.sortable.sort-active .sort-arrow{opacity:1;color:var(--accent);}
+  tbody td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:0.9rem;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background 0.12s ease;}
+  tbody tr:hover{background:var(--surface-2);}
+  tbody td.pos-cell{font-weight:700;text-align:left;color:var(--text-muted);}
+  tbody td.pts-cell{font-weight:700;color:var(--text);}
+  tr.row-highlight td{background:var(--gold-soft);}
+  tr.row-highlight:hover td{background:var(--gold-soft);}
+  .club-cell{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .club-link{color:var(--accent);font-weight:700;}
+  .club-link:hover{text-decoration:underline;}
+  .tag{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:3px 8px;border-radius:999px;white-space:nowrap;}
+  .tag-champ{background:var(--gold);color:#20180a;}
+  .tag-releg{background:transparent;border:1px solid var(--border-dashed);color:var(--text-faint);}
+  .pts-bar-wrap{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+  .pts-bar-track{display:block;width:64px;height:7px;border-radius:4px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;flex:none;}
+  .pts-bar-fill{display:block;height:100%;border-radius:4px;background:var(--accent);width:0;transition:width 0.7s cubic-bezier(.22,.9,.35,1);}
+  tr.row-highlight .pts-bar-fill{background:var(--gold);}
+  .no-rows{padding:28px;text-align:center;color:var(--text-faint);}
+
+  .standings-note{margin-top:14px;color:var(--text-muted);font-size:0.82rem;}
+  .standings-note .src{display:block;margin-top:4px;color:var(--text-faint);}
+  .standings-empty{padding:28px 22px;border:1px dashed var(--border-dashed);border-radius:var(--radius);color:var(--text-muted);font-size:0.92rem;}
+
+  .reveal{opacity:0;transform:translateY(8px);transition:opacity 0.4s ease, transform 0.4s ease;}
+  .reveal.is-visible{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1;transform:none;transition:none;}
+    .pts-bar-fill{transition:none;}
+  }
+
+  footer{margin-top:44px;text-align:center;color:var(--text-muted);font-size:0.78rem;}
+  footer a{color:var(--accent);font-weight:600;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <nav class="topbar-nav" aria-label="Site sections">
+      <a class="topbar-link" href="schedule.html">Schedule</a>
+      <a class="topbar-link active" href="#">Standings</a>
+      <a class="topbar-link" href="results.html">Results</a>
+      <a class="topbar-link" href="stats.html">Stats</a>
+    </nav>
+    <div class="topbar-right">
+      <a class="topbar-center" href="index.html" style="text-decoration:none;">
+        <span class="topbar-wordmark">Kenya Premier League</span>
+      </a>
+      <div class="season-select-wrap">
+        <select class="season-select" id="seasonSelect" aria-label="Season">
+          <option value="2025-26">2025/26 season</option>
+          <option value="2024-25">2024/25 season</option>
+        </select>
+      </div>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle color theme" data-mode="light">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="flag-strip"><span class="fs-black"></span><span class="fs-white"></span><span class="fs-red"></span><span class="fs-white"></span><span class="fs-green"></span></div>
+
+<div class="page">
+  <a class="back-link" href="index.html" style="display:inline-block;margin-top:18px;">&larr; All clubs</a>
+
+  <section class="headline" style="margin-top:0;">
+    <h1>Kenya Premier League <span class="accent">Standings</span></h1>
+    <p class="headline-tag">The final table for each completed season — all 18 clubs, one full 34-match double round-robin.</p>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Table</h2>
+      <p id="tableSub">Final standings &middot; 2025/26 season</p>
+    </div>
+    <div class="table-controls">
+      <input type="search" class="club-search" id="clubSearch" placeholder="Search clubs&hellip;" aria-label="Search clubs">
+      <span class="table-hint">Click a column heading to sort</span>
+    </div>
+    <div id="standingsBody"></div>
+  </section>
+
+  <footer>Gor Mahia&rsquo;s row is highlighted &mdash; click through for their full match-by-match season.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var GOR_MAHIA_URL = "gor-mahia.html";
+  var TUSKER_URL = "tusker.html";
+  var KENYA_POLICE_URL = "kenya-police.html";
+  var AFC_LEOPARDS_URL = "afc-leopards.html";
+
+  var STANDINGS = {
+    "2025-26": {
+      label: "2025/26",
+      note: "Season concluded 30 May 2026 &mdash; every club played all 34 matches. Gold row = champions, muted tags = relegated to the National Super League.",
+      src: "Source: official FKF Leagues standings (fkfleagues.co.ke), cross-checked against Daily Sports and Standard Media season recaps.",
+      rows: [
+        {"position":1,"team":"Gor Mahia FC","played":34,"won":20,"drawn":9,"lost":5,"gf":50,"ga":22,"gd":28,"points":69},
+        {"position":2,"team":"AFC Leopards SC","played":34,"won":19,"drawn":7,"lost":8,"gf":44,"ga":28,"gd":16,"points":64},
+        {"position":3,"team":"Kenya Police FC","played":34,"won":13,"drawn":16,"lost":5,"gf":31,"ga":21,"gd":10,"points":55},
+        {"position":4,"team":"Nairobi United FC","played":34,"won":14,"drawn":11,"lost":9,"gf":44,"ga":34,"gd":10,"points":53},
+        {"position":5,"team":"Shabana FC","played":34,"won":14,"drawn":10,"lost":10,"gf":35,"ga":34,"gd":1,"points":52},
+        {"position":6,"team":"Kakamega Homeboyz FC","played":34,"won":12,"drawn":13,"lost":9,"gf":47,"ga":37,"gd":10,"points":49},
+        {"position":7,"team":"KCB FC","played":34,"won":13,"drawn":9,"lost":12,"gf":36,"ga":37,"gd":-1,"points":48},
+        {"position":8,"team":"Murang'a SEAL FC","played":34,"won":13,"drawn":8,"lost":13,"gf":42,"ga":42,"gd":0,"points":47},
+        {"position":9,"team":"Tusker FC","played":34,"won":13,"drawn":6,"lost":15,"gf":27,"ga":32,"gd":-5,"points":45},
+        {"position":10,"team":"APS Bomet FC","played":34,"won":11,"drawn":11,"lost":12,"gf":37,"ga":35,"gd":2,"points":44},
+        {"position":11,"team":"TransMara Sugar FC","played":34,"won":10,"drawn":14,"lost":10,"gf":30,"ga":30,"gd":0,"points":44},
+        {"position":12,"team":"Bandari FC","played":34,"won":9,"drawn":17,"lost":8,"gf":26,"ga":26,"gd":0,"points":44},
+        {"position":13,"team":"Ulinzi Stars FC","played":34,"won":11,"drawn":8,"lost":15,"gf":35,"ga":37,"gd":-2,"points":41},
+        {"position":14,"team":"Mathare United FC","played":34,"won":11,"drawn":8,"lost":15,"gf":31,"ga":35,"gd":-4,"points":41},
+        {"position":15,"team":"Posta Rangers FC","played":34,"won":9,"drawn":13,"lost":12,"gf":31,"ga":40,"gd":-9,"points":40},
+        {"position":16,"team":"Kariobangi Sharks FC","played":34,"won":8,"drawn":14,"lost":12,"gf":30,"ga":33,"gd":-3,"points":38},
+        {"position":17,"team":"Bidco United FC","played":34,"won":5,"drawn":12,"lost":17,"gf":19,"ga":40,"gd":-21,"points":27},
+        {"position":18,"team":"Sofapaka FC","played":34,"won":3,"drawn":10,"lost":21,"gf":19,"ga":51,"gd":-32,"points":19}
+      ]
+    },
+    "2024-25": {
+      label: "2024/25",
+      note: "Season concluded June 2025 &mdash; every club played all 34 matches. Talanta FC and Nairobi City Stars FC (both relegated at season end) are not part of the 2025/26 season above; they were replaced by APS Bomet and Nairobi United.",
+      src: "Source: official FKF Leagues standings (fkfleagues.co.ke), cross-checked against a Daily Nation-sourced season recap.",
+      rows: [
+        {"position":1,"team":"Kenya Police FC","played":34,"won":18,"drawn":11,"lost":5,"gf":38,"ga":17,"gd":21,"points":65},
+        {"position":2,"team":"Gor Mahia FC","played":34,"won":16,"drawn":11,"lost":7,"gf":47,"ga":24,"gd":23,"points":59},
+        {"position":3,"team":"Kakamega Homeboyz FC","played":34,"won":15,"drawn":13,"lost":6,"gf":39,"ga":27,"gd":12,"points":58},
+        {"position":4,"team":"Tusker FC","played":34,"won":15,"drawn":12,"lost":7,"gf":41,"ga":36,"gd":5,"points":57},
+        {"position":5,"team":"Shabana FC","played":34,"won":14,"drawn":11,"lost":9,"gf":41,"ga":29,"gd":12,"points":53},
+        {"position":6,"team":"AFC Leopards SC","played":34,"won":12,"drawn":15,"lost":7,"gf":41,"ga":28,"gd":13,"points":51},
+        {"position":7,"team":"Sofapaka FC","played":34,"won":11,"drawn":13,"lost":10,"gf":37,"ga":28,"gd":9,"points":46},
+        {"position":8,"team":"Bandari FC","played":34,"won":10,"drawn":14,"lost":10,"gf":26,"ga":30,"gd":-4,"points":44},
+        {"position":9,"team":"KCB FC","played":34,"won":10,"drawn":12,"lost":12,"gf":36,"ga":35,"gd":1,"points":42},
+        {"position":10,"team":"Mathare United FC","played":34,"won":10,"drawn":12,"lost":12,"gf":26,"ga":40,"gd":-14,"points":42},
+        {"position":11,"team":"Kariobangi Sharks FC","played":34,"won":8,"drawn":16,"lost":10,"gf":29,"ga":29,"gd":0,"points":40},
+        {"position":12,"team":"Ulinzi Stars FC","played":34,"won":8,"drawn":14,"lost":12,"gf":29,"ga":33,"gd":-4,"points":38},
+        {"position":13,"team":"Murang'a SEAL FC","played":34,"won":9,"drawn":10,"lost":15,"gf":25,"ga":40,"gd":-15,"points":37},
+        {"position":14,"team":"TransMara Sugar FC","played":34,"won":8,"drawn":12,"lost":14,"gf":34,"ga":41,"gd":-7,"points":36},
+        {"position":15,"team":"Bidco United FC","played":34,"won":7,"drawn":14,"lost":13,"gf":21,"ga":32,"gd":-11,"points":35},
+        {"position":16,"team":"Posta Rangers FC","played":34,"won":8,"drawn":11,"lost":15,"gf":36,"ga":49,"gd":-13,"points":35},
+        {"position":17,"team":"Talanta FC","played":34,"won":9,"drawn":8,"lost":17,"gf":33,"ga":46,"gd":-13,"points":35},
+        {"position":18,"team":"Nairobi City Stars FC","played":34,"won":8,"drawn":11,"lost":15,"gf":26,"ga":41,"gd":-15,"points":35}
+      ]
+    }
+  };
+
+  var currentKey = '2025-26';
+  var currentSortField = 'position';
+  var currentSortDir = 1; // 1 = asc, -1 = desc
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function rowHTML(r, isChamp, isReleg, maxPoints){
+    var isGorMahia = r.team === "Gor Mahia FC";
+    var isTusker = r.team === "Tusker FC";
+    var isKenyaPolice = r.team === "Kenya Police FC";
+    var isAfcLeopards = r.team === "AFC Leopards SC" || r.team === "AFC Leopards";
+    var isLinked = isGorMahia || isTusker || isKenyaPolice || isAfcLeopards;
+    var nameCell = isGorMahia
+      ? '<a class="club-link" href="' + GOR_MAHIA_URL + '">' + esc(r.team) + '</a>'
+      : (isTusker ? '<a class="club-link" href="' + TUSKER_URL + '">' + esc(r.team) + '</a>'
+      : (isKenyaPolice ? '<a class="club-link" href="' + KENYA_POLICE_URL + '">' + esc(r.team) + '</a>'
+      : (isAfcLeopards ? '<a class="club-link" href="' + AFC_LEOPARDS_URL + '">' + esc(r.team) + '</a>' : esc(r.team))));
+    var tag = isChamp
+      ? '<span class="tag tag-champ">Champions</span>'
+      : (isReleg ? '<span class="tag tag-releg">Relegated</span>' : '');
+    var pct = maxPoints ? Math.round((r.points / maxPoints) * 100) : 0;
+    return '<tr' + (isLinked ? ' class="row-highlight"' : '') + ' data-team="' + esc(r.team.toLowerCase()) + '">' +
+      '<td class="pos-cell">' + r.position + '</td>' +
+      '<td><div class="club-cell">' + nameCell + tag + '</div></td>' +
+      '<td class="mono">' + r.played + '</td>' +
+      '<td class="mono">' + r.won + '</td>' +
+      '<td class="mono">' + r.drawn + '</td>' +
+      '<td class="mono">' + r.lost + '</td>' +
+      '<td class="mono">' + r.gf + '</td>' +
+      '<td class="mono">' + r.ga + '</td>' +
+      '<td class="mono">' + (r.gd >= 0 ? '+' : '') + r.gd + '</td>' +
+      '<td class="mono pts-cell"><div class="pts-bar-wrap"><span>' + r.points + '</span><span class="pts-bar-track"><span class="pts-bar-fill" data-pct="' + pct + '"></span></span></div></td>' +
+    '</tr>';
+  }
+
+  var SORT_FIELDS = ['position','team','played','won','drawn','lost','gf','ga','gd','points'];
+
+  function sortedRows(rows){
+    var arr = rows.slice();
+    var field = currentSortField;
+    var dir = currentSortDir;
+    arr.sort(function(a, b){
+      var av = a[field], bv = b[field];
+      if (field === 'team') { av = av.toLowerCase(); bv = bv.toLowerCase(); return av.localeCompare(bv) * dir; }
+      return (av - bv) * dir;
+    });
+    return arr;
+  }
+
+  function bodyHTML(key){
+    var data = STANDINGS[key];
+    if(!data){
+      return '<div class="standings-empty">The full 2024/25 table hasn&rsquo;t been compiled for every club yet &mdash; only Gor Mahia&rsquo;s own record is on file so far (they finished 2nd of 18). Check their <a class="club-link" href="' + GOR_MAHIA_URL + '">season page</a> for that, or check back here once the rest of the league is added.</div>';
+    }
+    var total = data.rows.length;
+    var maxPoints = data.rows.reduce(function(m, r){ return Math.max(m, r.points); }, 1);
+    // champion/relegation status is defined by finishing POSITION, not by current sort order
+    var byPosition = {};
+    data.rows.forEach(function(r){ byPosition[r.position] = r; });
+    var rows = sortedRows(data.rows).map(function(r){
+      var isChamp = r.position === 1;
+      var isReleg = r.position >= total - 1;
+      return rowHTML(r, isChamp, isReleg, maxPoints);
+    }).join('');
+
+    function th(field, label, numeric){
+      var active = field === currentSortField;
+      var arrow = active ? (currentSortDir === 1 ? '&uarr;' : '&darr;') : '&udarr;';
+      return '<th class="sortable' + (numeric ? ' num' : '') + (active ? ' sort-active' : '') + '" data-field="' + field + '">' + label + '<span class="sort-arrow">' + arrow + '</span></th>';
+    }
+
+    return '<div class="table-wrap"><table>' +
+      '<thead><tr>' +
+        th('position', '#', false) +
+        th('team', 'Club', false) +
+        th('played', 'P', true) +
+        th('won', 'W', true) +
+        th('drawn', 'D', true) +
+        th('lost', 'L', true) +
+        th('gf', 'GF', true) +
+        th('ga', 'GA', true) +
+        th('gd', 'GD', true) +
+        th('points', 'Pts', true) +
+      '</tr></thead>' +
+      '<tbody id="standingsRows">' + rows + '</tbody>' +
+      '</table></div>' +
+      '<p class="standings-note">' + data.note + '<span class="src">' + data.src + '</span></p>';
+  }
+
+  function animateBars(){
+    var bars = document.querySelectorAll('.pts-bar-fill');
+    requestAnimationFrame(function(){
+      bars.forEach(function(b){ b.style.width = b.getAttribute('data-pct') + '%'; });
+    });
+  }
+
+  function applySearch(){
+    var q = (document.getElementById('clubSearch').value || '').trim().toLowerCase();
+    var rows = document.querySelectorAll('#standingsRows tr');
+    var any = false;
+    rows.forEach(function(tr){
+      var match = !q || tr.getAttribute('data-team').indexOf(q) !== -1;
+      tr.style.display = match ? '' : 'none';
+      if (match) any = true;
+    });
+    var wrap = document.getElementById('standingsBody');
+    var noRows = wrap.querySelector('.no-rows');
+    if (!any && !noRows && rows.length) {
+      noRows = document.createElement('div');
+      noRows.className = 'no-rows';
+      noRows.textContent = 'No clubs match your search.';
+      wrap.querySelector('.table-wrap').appendChild(noRows);
+    } else if (any && noRows) {
+      noRows.remove();
+    }
+  }
+
+  function wireSortHeaders(){
+    var ths = document.querySelectorAll('thead th.sortable');
+    ths.forEach(function(th){
+      th.addEventListener('click', function(){
+        var field = th.getAttribute('data-field');
+        if (field === currentSortField) {
+          currentSortDir = -currentSortDir;
+        } else {
+          currentSortField = field;
+          currentSortDir = (field === 'team') ? 1 : -1;
+        }
+        renderSeason(currentKey, true);
+      });
+    });
+  }
+
+  function renderSeason(key, keepScroll){
+    currentKey = key;
+    document.getElementById('standingsBody').innerHTML = bodyHTML(key);
+    document.getElementById('tableSub').textContent = 'Final standings · ' + (STANDINGS[key] ? STANDINGS[key].label : key.replace('-', '/')) + ' season';
+    wireSortHeaders();
+    applySearch();
+    animateBars();
+  }
+
+  document.getElementById('seasonSelect').addEventListener('change', function(e){
+    currentSortField = 'position';
+    currentSortDir = 1;
+    renderSeason(e.target.value);
+  });
+  document.getElementById('clubSearch').addEventListener('input', applySearch);
+
+  // ---- Theme toggle (persisted per-viewer via localStorage; this artifact's own origin) ----
+  var themeToggle = document.getElementById('themeToggle');
+  var THEME_KEY = 'kpl-theme';
+  function systemPrefersDark(){
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+  function resolvedMode(){
+    var attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'dark' || attr === 'light') return attr;
+    return systemPrefersDark() ? 'dark' : 'light';
+  }
+  function applyTheme(stored){
+    if (stored === 'light' || stored === 'dark') {
+      document.documentElement.setAttribute('data-theme', stored);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    if (themeToggle) themeToggle.setAttribute('data-mode', resolvedMode());
+  }
+  var storedTheme = null;
+  try { storedTheme = localStorage.getItem(THEME_KEY); } catch(e){}
+  applyTheme(storedTheme || 'dark');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function(){
+      var next = resolvedMode() === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem(THEME_KEY, next); } catch(e){}
+      applyTheme(next);
+    });
+  }
+
+  renderSeason('2025-26');
+})();
+</script>
+
+</body>
+</html>
